@@ -23,9 +23,10 @@ These pages show my approach to modernizing a medium sized project with approx 2
 
 ## Ressources
 Guides to C++20
-https://changkun.de/modern-cpp/pdf/modern-cpp-tutorial-en-us.pdf
 
-
+- https://changkun.de/modern-cpp/pdf/modern-cpp-tutorial-en-us.pdf
+- https://github.com/AnthonyCalandra/modern-cpp-features
+- https://www.modernescpp.com/index.php/c-20-an-overview
 
 
 
