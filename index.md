@@ -1,4 +1,33 @@
-## Welcome to GitHub Pages
+## Modernizing a C++ codebase
+
+You'll find many pages about how great "modern c++" is. The community is exited about all the new stuff. coroutines, modules, new library features and much, much more, and rightfully so. C++20 is exciting. 
+
+But you cannot just open your IDE and start adding C++20 code to your existing projects, because when you first try to compile your code with /std:c++20, you will be in for a surprise.
+
+### What is the problem?
+Even if your old codebase compiles fine, with 0 warnings, with your current compiler, there are many issues that will prevent you from using C++20.
+
+- Your code may rely on language features that no longer available.
+- It may contain errors that went unnoticed so far.
+- You've created all your projects with default settings, which allow non-standard language extensions.
+- Some variables or classes have names that are now reserved language keywords.
+
+So, even though `C++20` is `C++`, it is not exactly backwards compatible.
+
+These pages show my approach to modernizing a medium sized project with approx 2500 .cpp files.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 You can use the [editor on GitHub](https://github.com/hajokirchhoff/modernizing-cpp/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
