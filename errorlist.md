@@ -83,7 +83,7 @@ The code is trying to create an object of type `sqldiag`, but there is no constr
 ```cpp
 .h
 struct sqldiag {
-	sqldiag(char p_state[5], SQLINTEGER p_native_error, const string &p_msg);
+   sqldiag(char p_state[5], SQLINTEGER p_native_error, const string &p_msg);
 };
 
 .cpp
@@ -103,6 +103,61 @@ Now, with `/permissive-` this is no longer allowed. Thus the compiler sees a str
 
 ```cpp
 struct sqldiag {
-	sqldiag(const char p_state[5], SQLINTEGER p_native_error, const string &p_msg);
+   sqldiag(const char p_state[5], SQLINTEGER p_native_error, const string &p_msg);
 };
 ```
+### error C2664 cannot convert argument / A non-const reference may only be bound to an lvalue
+> ...\litwindow\libs\odbc\table.cpp(24): error C2664: 'void litwindow::odbc::table::init(litwindow::odbc::connection &)': cannot convert argument 1 from 'litwindow::odbc::shared_connection' to 'litwindow::odbc::shared_connection &'<br>
+> ...\litwindow\libs\odbc\table.cpp(24): note: A non-const reference may only be bound to an lvalue
+```cpp
+inline shared_connection LWODBC_API default_connection()
+{
+   return named_connection(tstring());
+}
+
+void table::init(shared_connection &s);
+
+table::table()
+{
+    init(default_connection()); // C2664 ... note: A non-const reference may only be bound to an lvalue
+}
+
+```
+
+#### Description:
+The code is trying to pass or assign a temporary variable to a parameter or other variable that is declared as an lvalue (reference).
+
+Here, `default_connection()` returns a newly created object - a temporary - which is then passed to `init`. `init` takes a reference to the parameter, which makes it possible for `init` to modify the value, which would be discarded. And worse, `init` might decide to keep the reference and attempt to modify the value later on - when the temporary object no longer exists.
+
+#### Solution:
+Add a const: change the parameter from `shared_connection &s` to `const shared_connection &s`. Temporary objects are allowed to be passed to const references.
+```cpp
+void table::init(shared_connection &s);
+```
+
+#### Details:
+Previously the Visual Studio compiler allowed this:
+```cpp
+bool consume(int how_much, int &from_what_inout)
+{
+   bool rc = consume <= from_what_inout;
+   if (rc)
+       from_what_inout -= howmuch;
+   return rc;
+}
+
+void main()
+{
+   int start = 10;
+   cout << consume(1, start) << endl;       // Okay, returns true.
+   cout << consume(1, start + 1) << endl;   // Also would return true, but no longer compiles, error C2664
+}
+```
+The idea here is that the function `consume`
+1. operates on the `from_what_inout` parameter
+2. returns true/false if the operation was successful
+3. "returns" the "remainder" of the operation by modifying the reference "from_what_inout"
+
+So after consume, the "from_what_inout" contains whatever remains after the op.
+
+The problem with this is that it is easy to shoot yourself into the foot (#footgun). See (https://stackoverflow.com/questions/6967927/non-const-reference-may-only-be-bound-to-an-lvalue) and many others for more info.
