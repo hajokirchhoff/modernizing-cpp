@@ -2,7 +2,7 @@
 
 You'll find many pages about how great "modern c++" is. The community is exited about all the new stuff. coroutines, modules, new library features and much, much more, and rightfully so. C++20 is exciting. 
 
-But you cannot just open your IDE and start adding C++20 code to your existing projects, because when you first try to compile your code with /std:c++20, you will be in for a surprise.
+But you cannot just open your IDE and start adding C++20 code to your existing projects. Try compiling your code with /std:c++20 for the first time and you will be in for a surprise.
 
 ### What is the problem?
 Even if your old codebase compiles fine, with 0 warnings, with your current compiler, there are many issues that will prevent you from using C++20.
@@ -21,17 +21,15 @@ These pages show my approach to modernizing a medium sized project with approx 2
 
 
 
+## Ressources
+Guides to C++20
+https://changkun.de/modern-cpp/pdf/modern-cpp-tutorial-en-us.pdf
 
 
 
 
 
 
-
-
-You can use the [editor on GitHub](https://github.com/hajokirchhoff/modernizing-cpp/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
 ### Markdown
 
@@ -56,11 +54,3 @@ Syntax highlighted code block
 ```
 
 For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/hajokirchhoff/modernizing-cpp/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
