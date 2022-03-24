@@ -20,7 +20,11 @@ These pages show my approach to modernizing a medium sized project with approx 2
 ## Overview
 
 ## Preparation
-
+- Update the Windows SDK, because the  [Windows SDK before 10.0.16299.0 won't compile](https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance?view=msvc-170#windows-header-issues)
+- Update all library versions
+- Use git
+- Use unittests
+- Start with /permissive-
 
 
 

@@ -5,20 +5,20 @@
 ## /permissive- with templates
 A lot of problems come from relaxed rules the Visual Studio compiler has with templates. Templates have subtle language ambiguities that have been discovered and corrected over time. To resolve these ambiguities the compiler needs additional information by the programmer. These requirements have been added to the C++ language standard over time.
 
-### C2760: syntax error: unexpected token 'identifier', expected ';' <br>C7510: 'const_iterator': use of dependent type name must be prefixed with 'typename'
+### C2760: syntax error: unexpected token 'identifier', expected ';' combined with <br>C7510: 'const_iterator': use of dependent type name must be prefixed with 'typename'
 #### Description:
-This line of code inside a template definition causes a C2760 in combination with a C7510.
+This line of code inside a template definition causes a C2760 _in combination_ with a C7510. *Note:* C7510 has different reasons and even different wordings. This explanation here  talks about a C2760 error in conjunction with the C7510. Both need to be present.
 
-   renderer_map_t::const_iterator i=m_objects.find(a.get_type());
+`renderer_map_t::const_iterator i=m_objects.find(a.get_type());`
 #### Solution:
 Add the keyword `typename` before the identifier in question.
 
-   `typename renderer_map_t::const_iterator i=m_objects.find(a.get_type());
+`typename renderer_map_t::const_iterator i=m_objects.find(a.get_type());`
 
 #### Bonus:
 This particular instance should read
 
-   auto i=m_objects.find(a.get_type());
+`auto i=m_objects.find(a.get_type());`
 
 #### What is the problem:
 Old code:
@@ -44,6 +44,29 @@ class renderer
    {
       *typename* renderer_map_t::const_iterator i=m_objects.find(a.get_type());
 ```
+
+### C7510 use of dependent template name must be prefixed with 'template'
+>...\message_queue\basic_message_transport.hpp(112): error C7510: 'handshake_response': use of dependent template name must be prefixed with 'template' <br>
+>...\message_queue\basic_message_transport.hpp(112): note: This diagnostic occurred in the compiler generated function '...' 
+
+*Note:* This is a different kind of C7510 error than the one above. Here, C7510 is the sole error code and the error text talks about a *template* name as opposed to a *typename*.
+#### Description:
+```cpp
+template <typename Protocol>
+void set_protocol()
+{
+    m_handshake_response=boost::bind(&Protocol::handshake_response<sock_type_t, boost::asio::yield_context>, Protocol(), _1, _2, _3);
+}
+```
+
+The error here is with `&Protocol::handshake_response<...>`. Even though `handshake_response` clearly seems to be a template, the compiler cannot be sure it is. See [Stackoverflow](https://stackoverflow.com/questions/610245/where-and-why-do-i-have-to-put-the-template-and-typename-keywords) for a great explanation. This is why you have to explicitly tell the compiler that it actually `is` a template.
+
+#### Solution:
+Add the keyword `template` after the \:\:, right before the actual template.
+```cpp
+    m_handshake_response=boost::bind(&Protocol::template handshake_response<sock_type_t, boost::asio::yield_context>, Protocol(), _1, _2, _3);
+```
+
 
 
 ### C5043 (warning): 'litwindow::odbc::sqlreturn::do_log_errors': exception specification does not match previous declaration
@@ -73,39 +96,6 @@ bool sqlreturn::do_log_errors() const
 
 or get rid of `throws()` altogether. Exception Specifications where a thing pre 2000, but are now considered bad practice. See: https://stackoverflow.com/questions/1055387/throw-keyword-in-functions-signature
 
-### error C2440: '\<function-style-cast\>': cannot convert from 'initializer list' to '_litwindow\::odbc\::sqldiag_'
-> ...litwindow\libs\odbc\lwodbc.cpp(202): error C2440: '\<function-style-cast\>': cannot convert from 'initializer list' to 'litwindow::odbc::sqldiag'<br>
-> ...\litwindow\libs\odbc\lwodbc.cpp(202): note: No constructor could take the source type, or constructor overload resolution was ambiguous
-
-#### Description:
-The code is trying to create an object of type `sqldiag`, but there is no constructor that accepts the `initializer list` (the parameters).
-
-```cpp
-.h
-struct sqldiag {
-   sqldiag(char p_state[5], SQLINTEGER p_native_error, const string &p_msg);
-};
-
-.cpp
-   sqldiag value("LWODB", err_logic_error, "<<Logic error: Requested diagnostics record does not exist!>>");
-```
-What seems suprising is that this code compiles just fine with `/permissive-`. What is going on?
-
-sqldiag has a constructor that accepts an array of 5 chars ```char p_state[5]```. The code tries to call it with a null terminated string literal "LWODB".
-
-#### Solution:
-Change the constructor from `char p_state[5]` to a `const char p_state[5]`.
-
-String literals are actually of type `const char *`, not `char *`. This makes sense, since string literals are not supposed to be modified. But earlier versions of the compiler or the `/permissive` switch allow this anyway.
-
-Now, with `/permissive-` this is no longer allowed. Thus the compiler sees a string literal (`const char *`), looks for a constructor but does not find one. The existing constructor wants a `char *`, which no longer matches, causing the error "cannot convert ...  No constructor could take the source type..."
-
-
-```cpp
-struct sqldiag {
-   sqldiag(const char p_state[5], SQLINTEGER p_native_error, const string &p_msg);
-};
-```
 ### error C2664 cannot convert argument / A non-const reference may only be bound to an lvalue
 > ...\litwindow\libs\odbc\table.cpp(24): error C2664: 'void litwindow::odbc::table::init(litwindow::odbc::connection &)': cannot convert argument 1 from 'litwindow::odbc::shared_connection' to 'litwindow::odbc::shared_connection &'<br>
 > ...\litwindow\libs\odbc\table.cpp(24): note: A non-const reference may only be bound to an lvalue
@@ -161,3 +151,35 @@ The idea here is that the function `consume`
 So after consume, the "from_what_inout" contains whatever remains after the op.
 
 The problem with this is that it is easy to shoot yourself into the foot (#footgun). See (https://stackoverflow.com/questions/6967927/non-const-reference-may-only-be-bound-to-an-lvalue) and many others for more info.
+
+### C2440 'initializing': cannot convert from 'const char [18]' to 'boost\::optional\<std\::string\>'
+> ...\litwindow\libs\odbc\odbc_unittest\odbc_unittest.cpp(97): error C2440: 'initializing': cannot convert from 'const char [18]' to 'boost\::optional\<std\::string\>'<br>
+> ...\litwindow\libs\odbc\odbc_unittest\odbc_unittest.cpp(97): note: Constructor for class 'boost\::optional\<std\::string\>' is declared 'explicit'
+#### Description:
+The code is trying to pass a string literal in an initializer list where a `boost\::optional\<std\::string\>` is expected.
+
+```cpp
+struct test_struct
+{
+	int m_id;
+	boost::optional<float> m_optional_val;
+	boost::optional<std::string> m_optional_textval;
+};
+
+void main()
+{
+   test_struct a = {10, 3, "optional string"}; // The string literal "optional string" is no longer accepted here.
+}
+```
+### Solution:
+Change the code to:
+```cpp
+void main()
+{
+   test_struct a = {10, 3, std\::string("optional string")};
+}
+```
+
+### Details:
+
+The third entry in the initializer list is a string literal, which is passed as a `const char*`. The member variable `m_optional_textval` however is defined as an `optional\<string\>`. There are several constructors for the compiler to choose from. The standard constructors accepting a `string` or `const string &` are ruled out here, because the argument is a `const char *`. There is one constructor that accepts a type compatible with `std\::string` and initializes the `optional` by first converting the type to `std\::string` and then assigning the `string` to the optional. But this constructor is marked as `explicit`. That is basically what the error message says here: The compiler tries this constructor, but cannot use it, because it has to be called explicitly.
