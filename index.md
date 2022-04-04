@@ -2,7 +2,7 @@
 
 You'll find many pages about how great "modern c++" is. The community is exited about all the new stuff. coroutines, modules, new library features and much, much more, and rightfully so. C++20 is exciting. 
 
-But you cannot just open your IDE and start adding C++20 code to your existing projects. Try compiling your code with /std:c++20 for the first time and you will be in for a surprise.
+But you cannot just open your IDE and start adding C\++20 code to your existing projects. Try compiling your code with /std:c\++20 for the first time and you will be in for a surprise.
 
 ### What is the problem?
 Even if your old codebase compiles fine, with 0 warnings, with your current compiler, there are many issues that will prevent you from using C++20.
